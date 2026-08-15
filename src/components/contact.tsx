@@ -78,7 +78,7 @@ export function Contact() {
             />
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-6">
             <div>
               <label
                 htmlFor="email"
@@ -94,28 +94,7 @@ export function Contact() {
                 className="mt-2 w-full bg-[#DCD4C7] px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-2 focus:outline-[#14150f]"
               />
             </div>
-            <div>
-              <label
-                htmlFor="budget"
-                className="text-xs font-medium tracking-widest text-zinc-500 uppercase"
-              >
-                Budget Range
-              </label>
-              <select
-                id="budget"
-                name="budget"
-                defaultValue=""
-                className="mt-2 w-full bg-[#DCD4C7] px-4 py-3 text-sm text-zinc-900 focus:outline-2 focus:outline-[#14150f]"
-              >
-                <option value="" disabled>
-                  Select a range
-                </option>
-                <option>Under $10K</option>
-                <option>$10K – $50K</option>
-                <option>$50K – $150K</option>
-                <option>$150K+</option>
-              </select>
-            </div>
+           
           </div>
 
           <div>
