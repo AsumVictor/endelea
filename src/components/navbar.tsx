@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { CloseIcon, MenuIcon } from "@/components/icons";
 
 function ArrowUpRightIcon() {
   return (
@@ -25,11 +28,11 @@ const primaryLinks = [
   { label: "Services", href: "#services" },
   { label: "Work & Case Studies", href: "#work" },
   { label: "About Us", href: "#about" },
-  { label: "Insights", href: "#insights" },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -38,22 +41,35 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  // Close the mobile menu automatically if the viewport grows past the
+  // breakpoint where the desktop nav takes over.
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 64rem)");
+    const onChange = () => setMenuOpen(false);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
   return (
     <header className="fixed inset-x-0 top-0 z-50">
-      <div className="bg-[#14150f] px-6 py-2 text-center text-xs font-medium tracking-widest text-white uppercase">
-        Now Booking Projects for Spring 2025 &ndash; Secure Your Spot Today.
-      </div>
 
+      {/* Desktop nav */}
       <nav
-        className={`grid grid-cols-[1fr_auto_1fr] items-center px-6 py-5 transition-colors duration-300 sm:px-10 lg:px-16 ${
+        className={`hidden grid-cols-[1fr_auto_1fr] items-center px-6 py-5 transition-colors duration-300 sm:px-10 lg:grid lg:px-16 ${
           scrolled ? "bg-white" : "bg-transparent"
         }`}
       >
         <div
           className={`flex max-w-md items-center justify-between gap-6 text-sm font-medium transition-colors duration-300 ${
-            scrolled
-              ? "text-zinc-500"
-              : "text-white/80"
+            scrolled ? "text-zinc-500" : "text-white/80"
           }`}
         >
           {primaryLinks.map((link) => (
@@ -67,18 +83,6 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
-        </div>
-
-        <a
-          href="/"
-          className={`shrink-0 px-8 text-lg font-semibold tracking-tight transition-colors duration-300 ${
-            scrolled ? "text-zinc-950" : "text-white"
-          }`}
-        >
-          Endelea
-        </a>
-
-        <div className="flex items-center justify-end gap-6 text-sm font-medium">
           <a
             href="#contact"
             className={`font-medium transition-colors duration-300 ${
@@ -87,8 +91,21 @@ export function Navbar() {
           >
             Contact Us
           </a>
+        </div>
+
+        <Link href="/" className="shrink-0 px-8">
+          <Image
+            src={scrolled ? "/logo-black.svg" : "/logo-white.svg"}
+            alt="Endelea"
+            width={122}
+            height={27}
+            className="h-6 w-auto"
+          />
+        </Link>
+
+        <div className="flex items-center justify-end gap-6 text-sm font-medium">
           <a
-            href="#consultation"
+            href="#contact"
             className="inline-flex items-center gap-3 bg-[#D4EC3A] py-2 pr-2 pl-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-[#c3da2f]"
           >
             Book a Consultation
@@ -98,6 +115,69 @@ export function Navbar() {
           </a>
         </div>
       </nav>
+
+      {/* Mobile bar */}
+      <nav
+        className={`flex items-center justify-between px-6 py-5 transition-colors duration-300 sm:px-10 lg:hidden ${
+          scrolled || menuOpen ? "bg-white" : "bg-transparent"
+        }`}
+      >
+        <Link href="/">
+          <Image
+            src={scrolled || menuOpen ? "/logo-black.svg" : "/logo-white.svg"}
+            alt="Endelea"
+            width={122}
+            height={27}
+            className="h-6 w-auto"
+          />
+        </Link>
+
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+          className={`flex h-10 w-10 items-center justify-center transition-colors duration-300 ${
+            scrolled || menuOpen ? "text-zinc-950" : "text-white"
+          }`}
+        >
+          {menuOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+      </nav>
+
+      {/* Mobile menu panel */}
+      {menuOpen && (
+        <div className="flex flex-col gap-1 bg-white px-6 pb-8 sm:px-10 lg:hidden">
+          {primaryLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="border-b border-zinc-100 py-4 text-base font-medium text-zinc-700"
+            >
+              {link.label}
+            </a>
+          ))}
+          <a
+            href="#contact"
+            onClick={() => setMenuOpen(false)}
+            className="border-b border-zinc-100 py-4 text-base font-medium text-zinc-700"
+          >
+            Contact Us
+          </a>
+
+          <a
+            href="#contact"
+            onClick={() => setMenuOpen(false)}
+            className="mt-6 inline-flex items-center justify-center gap-3 bg-[#D4EC3A] py-3 pr-2 pl-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-[#c3da2f]"
+          >
+            Book a Consultation
+            <span className="flex h-8 w-8 items-center justify-center bg-[#F5A524] text-white">
+              <ArrowUpRightIcon />
+            </span>
+          </a>
+        </div>
+      )}
     </header>
   );
 }

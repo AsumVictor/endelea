@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   FacebookIcon,
   InstagramIcon,
@@ -8,7 +9,6 @@ const pageLinks = [
   { label: "Services", href: "#services" },
   { label: "Work & Case Studies", href: "#work" },
   { label: "About Us", href: "#about" },
-  { label: "Insights", href: "#insights" },
 ];
 
 const moreLinks = [
@@ -28,7 +28,7 @@ export function Footer() {
     <footer className="bg-[#14150f] px-6 pt-16 pb-8 sm:px-10 lg:px-16">
       <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-lg font-semibold text-white">Endelea</p>
+          <Image src="/logo-white.svg" alt="Endelea" width={122} height={27} className="h-6 w-auto" />
           <div className="mt-6 flex flex-col gap-1 text-sm text-white/60">
             <a href="tel:+2536542082" className="transition-colors hover:text-white">
               +253 654 2082

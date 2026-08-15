@@ -7,7 +7,7 @@ export function FinalCta() {
     <section className="relative flex min-h-[520px] w-full items-end overflow-hidden bg-black">
       <Image
         src={heroImage}
-        alt="Endelea team on a build site"
+        alt="Timber-frame house under construction"
         fill
         className="object-cover"
         style={{ objectPosition: "30% 40%" }}
@@ -24,7 +24,7 @@ export function FinalCta() {
 
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <a
-            href="#consultation"
+            href="#contact"
             className="inline-flex items-center gap-2 bg-[#D4EC3A] px-6 py-3 text-sm font-semibold text-black transition-colors hover:bg-[#c3da2f]"
           >
             Request a Bid

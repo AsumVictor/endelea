@@ -2,7 +2,7 @@ import { ArrowRightIcon, StarIcon } from "@/components/icons";
 
 export function Contact() {
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-2">
+    <section id="contact" className="scroll-mt-32 grid grid-cols-1 lg:grid-cols-2">
       <div className="bg-[#B7AC9C] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 bg-[#14150f]" />
@@ -24,7 +24,7 @@ export function Contact() {
         </p>
 
         <a
-          href="#consultation"
+          href="#contact"
           className="mt-8 inline-flex items-center gap-2 border border-[#1E1B16]/15 bg-[#F4F2ED] px-6 py-3 text-sm font-semibold text-[#1E1B16] transition-colors hover:bg-white"
         >
           Book for Consultancy

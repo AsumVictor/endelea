@@ -23,11 +23,14 @@ const pillars = [
 
 export function About() {
   return (
-    <section className="bg-[#F4F2ED] px-6 py-20 sm:px-10 sm:py-28 lg:px-16">
+    <section
+      id="about"
+      className="scroll-mt-32 bg-[#F4F2ED] px-6 py-20 sm:px-10 sm:py-28 lg:px-16"
+    >
       <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-2 lg:items-center lg:gap-16">
         <NotchedImage
           src={heroImage}
-          alt="Endelea team on a build site"
+          alt="Timber-frame house under construction"
           objectPosition="75% 35%"
           className="aspect-723/680 w-full"
           animateReveal
@@ -55,7 +58,7 @@ export function About() {
           </p>
 
           <a
-            href="#company"
+            href="#about"
             className="mt-8 inline-flex items-center border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:border-zinc-950"
           >
             Our company

@@ -1,3 +1,5 @@
+import { CountUp } from "@/components/count-up";
+
 interface CaseStudyOverviewProps {
   eyebrow: string;
   title: string;
@@ -12,7 +14,7 @@ export function CaseStudyOverview({
   stats,
 }: CaseStudyOverviewProps) {
   return (
-    <section className="bg-white px-6 py-20 sm:px-10 lg:px-16">
+    <section id="work" className="scroll-mt-32 bg-white px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-7xl border-t border-zinc-200">
         <div className="grid gap-12 py-16 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-zinc-200">
           <div className="lg:pr-16">
@@ -32,9 +34,10 @@ export function CaseStudyOverview({
                 className="flex items-center justify-between gap-6 border-b border-zinc-200 py-8 first:pt-0"
               >
                 <p className="text-sm text-zinc-500">{stat.label}</p>
-                <p className="text-right font-serif text-5xl text-[#1E3A4C] sm:text-6xl">
-                  {stat.value}
-                </p>
+                <CountUp
+                  value={stat.value}
+                  className="text-right font-serif text-5xl text-[#1E3A4C] sm:text-6xl"
+                />
               </div>
             ))}
           </div>

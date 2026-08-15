@@ -1,3 +1,8 @@
+"use client";
+
+import { useRef } from "react";
+import { useScrollMarquee } from "@/hooks/use-scroll-marquee";
+
 interface Testimonial {
   quote: string;
   name: string;
@@ -47,32 +52,58 @@ const row2: Testimonial[] = [
 function TestimonialCard({ quote, name, title, cardBg }: Testimonial) {
   return (
     <div
-      className="flex h-105 w-96 shrink-0 flex-col justify-between p-8"
+      className="flex h-56 w-48 shrink-0 flex-col justify-between rounded-2xl p-4 sm:h-80 sm:w-72 sm:p-6 lg:h-105 lg:w-96 lg:p-8"
       style={{ backgroundColor: cardBg }}
     >
-      <p className="text-lg leading-relaxed text-zinc-900">
+      <p className="text-xs leading-relaxed text-zinc-900 sm:text-base lg:text-lg">
         &ldquo;{quote}&rdquo;
       </p>
       <div>
-        <p className="font-semibold text-zinc-950">{name}</p>
-        <p className="text-sm text-zinc-500">{title}</p>
+        <p className="text-sm font-semibold text-zinc-950 sm:text-base">
+          {name}
+        </p>
+        <p className="text-xs text-zinc-500 sm:text-sm">{title}</p>
       </div>
     </div>
   );
 }
 
-function TestimonialRow({ testimonials }: { testimonials: Testimonial[] }) {
+function TestimonialRow({
+  testimonials,
+  reverse = false,
+}: {
+  testimonials: Testimonial[];
+  reverse?: boolean;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  useScrollMarquee(trackRef, { reverse });
+
+  const items = [...testimonials, ...testimonials];
+
   return (
-    <div className="flex overflow-x-auto">
-      {testimonials.map((t) => (
-        <div key={t.name} className="flex shrink-0">
-          <div
-            className="h-105 w-96 shrink-0"
-            style={{ backgroundColor: t.photoBg }}
-          />
-          <TestimonialCard {...t} />
-        </div>
-      ))}
+    <div
+      className="overflow-hidden"
+      style={{
+        maskImage:
+          "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+        WebkitMaskImage:
+          "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+      }}
+    >
+      <div
+        ref={trackRef}
+        className="flex w-max gap-4 will-change-transform sm:gap-6 lg:gap-10"
+      >
+        {items.map((t, i) => (
+          <div key={i} className="flex shrink-0 gap-3 sm:gap-4 lg:gap-6">
+            <div
+              className="h-56 w-48 shrink-0 rounded-2xl sm:h-80 sm:w-72 lg:h-105 lg:w-96"
+              style={{ backgroundColor: t.photoBg }}
+            />
+            <TestimonialCard {...t} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -97,9 +128,9 @@ export function Testimonials() {
         </p>
       </div>
 
-      <div className="mt-16 flex flex-col gap-4">
+      <div className="mt-16 flex flex-col gap-6">
         <TestimonialRow testimonials={row1} />
-        <TestimonialRow testimonials={row2} />
+        <TestimonialRow testimonials={row2} reverse />
       </div>
     </section>
   );

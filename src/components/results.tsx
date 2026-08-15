@@ -130,7 +130,7 @@ export function Results() {
             Same principle: less friction, more clarity, better decisions.
           </p>
           <a
-            href="#case-studies"
+            href="#work"
             className="mt-8 inline-flex items-center bg-white/70 px-6 py-3 text-sm font-semibold text-zinc-900 transition-colors hover:bg-white"
           >
             Read case studies

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import heroImage from "@/assets/hero-png.png";
-import { ArrowRightIcon } from "@/components/icons";
 
 // Outer 4 cards stay static color blocks; the center one is the real photo
 // that grows into a fullscreen "video-style" moment as the user scrolls.
@@ -16,18 +15,16 @@ const photos = [
   { color: "#6E7B8B", offset: "translate-y-4 sm:translate-y-6 lg:translate-y-10" },
 ];
 
-const lines = [
-  "You don’t need a total overhaul just to move forward.",
-  "You just need the right systems in place.",
-  "Let’s collaborate to build, automate, and scale.",
-];
+const HOSPITALITY_EYEBROW = "Where it fits";
+const HOSPITALITY_QUOTE =
+  "Hospitality isn’t about adding more rooms. It’s about aligning what already welcomes. Through real-time availability and seamless booking, AquaView turned manual reservations into effortless stays.";
 
-// Fractions of the pinned scroll range.
-const PHASE_A_END = 0.32; // cards+heading fade out, center card grows to fullscreen
-const PHASE_B_END = 0.72; // fullscreen hold, text lines cross-fade over it
-// PHASE_B_END -> 1: shrinks to a banner, stats section reveals beneath
-const WRAPPER_VH = 480;
-const BANNER_HEIGHT_RATIO = 0.45;
+// Fraction of the pinned scroll range spent fading the cards out and
+// growing the center one to fullscreen. The rest is a brief hold — just
+// long enough to read the hospitality text — before the section unpins and
+// normal scrolling reveals whatever comes next.
+const PHASE_A_END = 0.8;
+const WRAPPER_VH = 180;
 
 interface Rect {
   top: number;
@@ -45,24 +42,13 @@ function lerpRect(a: Rect, b: Rect, t: number): Rect {
   };
 }
 
-function lineOpacity(progress: number, index: number, count: number) {
-  const segStart = index / count;
-  const segEnd = (index + 1) / count;
-  const local = Math.min(Math.max((progress - segStart) / (segEnd - segStart), 0), 1);
-  if (local < 0.25) return local / 0.25;
-  if (local > 0.75) return (1 - local) / 0.25;
-  return 1;
-}
-
 export function CaseStudyIntro() {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLElement>(null);
   const fadeGroupRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const centerCardRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const lineRefs = useRef<(HTMLParagraphElement | null)[]>([]);
-  const finalVideoRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
+  const quoteRef = useRef<HTMLDivElement>(null);
   const startRectRef = useRef<Rect | null>(null);
   const reducedMotionRef = useRef(false);
 
@@ -72,17 +58,8 @@ export function CaseStudyIntro() {
     const fadeGroup = fadeGroupRef.current;
     const centerCard = centerCardRef.current;
     const overlay = overlayRef.current;
-    const finalVideo = finalVideoRef.current;
-    const stats = statsRef.current;
-    if (
-      !wrapper ||
-      !sticky ||
-      !fadeGroup ||
-      !centerCard ||
-      !overlay ||
-      !finalVideo ||
-      !stats
-    )
+    const quote = quoteRef.current;
+    if (!wrapper || !sticky || !fadeGroup || !centerCard || !overlay || !quote)
       return;
 
     reducedMotionRef.current = window.matchMedia(
@@ -112,52 +89,45 @@ export function CaseStudyIntro() {
       ticking = false;
       const vh = window.innerHeight;
       const vw = window.innerWidth;
-      const scrollableDistance = wrapper.offsetHeight - vh;
+      // The "stuck" scroll room is the wrapper's height minus the sticky
+      // child's own height — not the viewport height, since the child is
+      // now sized to its content rather than h-screen.
+      const scrollableDistance = wrapper.offsetHeight - sticky.offsetHeight;
       if (scrollableDistance <= 0) return;
 
       const rectTop = wrapper.getBoundingClientRect().top;
       const raw = -rectTop / scrollableDistance;
       const overall = Math.min(Math.max(raw, 0), 1);
 
+      // Once the hold ends (raw > 1), the sticky child stops being stuck and
+      // needs to scroll its own height further to fully leave view. Track
+      // that same distance here so the fixed overlay + quote slide up in
+      // lockstep with it, instead of just vanishing in place.
+      const extraScrolled = Math.max(-rectTop - scrollableDistance, 0);
+      const exitProgress = Math.min(extraScrolled / sticky.offsetHeight, 1);
+      const translateY = -exitProgress * 100;
+
       const start = startRectRef.current!;
       const fullscreen: Rect = { top: 0, left: 0, width: vw, height: vh };
-      const banner: Rect = { top: 0, left: 0, width: vw, height: vh * BANNER_HEIGHT_RATIO };
 
       fadeGroup.style.opacity = `${1 - Math.min(overall / PHASE_A_END, 1)}`;
 
-      let rect: Rect;
-      if (overall <= PHASE_A_END) {
-        rect = lerpRect(start, fullscreen, overall / PHASE_A_END);
-      } else if (overall <= PHASE_B_END) {
-        rect = fullscreen;
-      } else {
-        const phaseC = (overall - PHASE_B_END) / (1 - PHASE_B_END);
-        rect = lerpRect(fullscreen, banner, phaseC);
-      }
+      const rect =
+        overall <= PHASE_A_END
+          ? lerpRect(start, fullscreen, overall / PHASE_A_END)
+          : fullscreen;
 
       overlay.style.top = `${rect.top}px`;
       overlay.style.left = `${rect.left}px`;
       overlay.style.width = `${rect.width}px`;
       overlay.style.height = `${rect.height}px`;
-      overlay.style.opacity = raw > 0 && raw < 1 ? "1" : "0";
+      overlay.style.transform = `translateY(${translateY}%)`;
+      overlay.style.opacity = raw > 0 && exitProgress < 1 ? "1" : "0";
 
-      const textProgress = Math.min(
-        Math.max((overall - PHASE_A_END) / (PHASE_B_END - PHASE_A_END), 0),
-        1
-      );
-      lineRefs.current.forEach((el, i) => {
-        if (!el) return;
-        el.style.opacity = `${lineOpacity(textProgress, i, lines.length)}`;
-      });
-
-      const phaseC = Math.min(
-        Math.max((overall - PHASE_B_END) / (1 - PHASE_B_END), 0),
-        1
-      );
-      const statsProgress = Math.min(Math.max((phaseC - 0.3) / 0.7, 0), 1);
-      stats.style.opacity = `${statsProgress}`;
-      stats.style.transform = `translateY(${(1 - statsProgress) * 32}px)`;
-      finalVideo.style.opacity = phaseC >= 0.97 ? "1" : "0";
+      // No fade animation on the quote itself — it simply shows once the
+      // zoom finishes, then scrolls away together with the overlay.
+      quote.style.transform = `translateY(${translateY}%)`;
+      quote.style.opacity = overall >= PHASE_A_END && exitProgress < 1 ? "1" : "0";
     };
 
     const onScroll = () => {
@@ -181,121 +151,84 @@ export function CaseStudyIntro() {
 
   return (
     <>
-    <div ref={wrapperRef} style={{ height: `${WRAPPER_VH}vh` }} className="relative">
-      <div ref={stickyRef} className="sticky top-0 h-screen overflow-hidden">
-        {/* Rest state: label, heading, 5 cards — fades out as the center one grows */}
-        <div
-          ref={fadeGroupRef}
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#B7AC9C] px-6"
-        >
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-medium tracking-widest text-[#4B453C] uppercase">
-              Ready to scale?
-            </p>
-            <h2 className="mt-3 font-serif text-3xl text-[#2B271F] italic sm:text-4xl">
-              Built for impact. Engineered for growth.
-            </h2>
-          </div>
-
-          <div className="mt-14 flex items-center justify-center gap-2 sm:mt-16 sm:gap-3 lg:gap-5">
-            {photos.map((photo, i) =>
-              i === CENTER_INDEX ? (
-                <div
-                  key={i}
-                  ref={centerCardRef}
-                  className={`relative h-16 w-10 shrink-0 overflow-hidden sm:h-32 sm:w-20 lg:h-56 lg:w-40 ${photo.offset}`}
-                >
-                  <Image
-                    src={heroImage}
-                    alt=""
-                    fill
-                    sizes="160px"
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div
-                  key={i}
-                  className={`h-16 w-10 shrink-0 sm:h-32 sm:w-20 lg:h-56 lg:w-40 ${photo.offset}`}
-                  style={{ backgroundColor: photo.color ?? undefined }}
-                />
-              )
-            )}
-          </div>
-        </div>
-
-        {/* Final resting content: banner photo + stats, revealed as the overlay shrinks */}
-        <div className="absolute inset-0 z-0 flex flex-col">
-          <div ref={finalVideoRef} className="relative opacity-0" style={{ height: `${BANNER_HEIGHT_RATIO * 100}%` }}>
-            <Image src={heroImage} alt="" fill sizes="100vw" className="object-cover" />
-          </div>
+      <section
+        ref={wrapperRef}
+        style={{ height: `${WRAPPER_VH}vh` }}
+        className="relative"
+      >
+        <div ref={stickyRef} className="sticky top-0 overflow-hidden bg-white">
+          {/* Rest state: label, heading, 5 cards — fades out as the center one grows.
+              Sized to its own content (not h-screen) so the section only needs to
+              scroll its own height away once it unpins, instead of a full viewport. */}
           <div
-            ref={statsRef}
-            className="flex flex-1 flex-col justify-center bg-[#2a1216] px-6 py-10 opacity-0 sm:px-10 lg:px-16"
+            ref={fadeGroupRef}
+            className="relative z-10 flex flex-col items-center justify-center bg-[#B7AC9C] px-6 py-20 sm:py-28"
           >
-            <div className="mx-auto grid w-full max-w-5xl gap-10 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-16">
-              <p className="max-w-xl text-lg leading-relaxed text-white/80 sm:text-xl">
-                This isn&rsquo;t about a total overhaul. It&rsquo;s the right
-                systems, in place, so you can build, automate, and scale.
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-medium tracking-widest text-[#4B453C] uppercase">
+                Ready to scale?
               </p>
-
-              <div className="flex gap-8">
-                <div>
-                  <p className="text-xs tracking-widest text-white/50 uppercase">
-                    Projects Shipped
-                  </p>
-                  <p className="mt-2 font-serif text-4xl text-white sm:text-5xl">
-                    40+
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs tracking-widest text-white/50 uppercase">
-                    Repeat Clients
-                  </p>
-                  <p className="mt-2 font-serif text-4xl text-white sm:text-5xl">
-                    90%
-                  </p>
-                </div>
-              </div>
+              <h2 className="mt-3 font-serif text-3xl text-[#2B271F] italic sm:text-4xl">
+                Built for impact. Engineered for growth.
+              </h2>
             </div>
 
-            <a
-              href="#request-service"
-              className="mt-8 inline-flex w-fit items-center gap-2 bg-[#D4EC3A] px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-[#c3da2f]"
-            >
-              Request a Service
-              <ArrowRightIcon />
-            </a>
+            <div className="mt-14 flex items-center justify-center gap-2 sm:mt-16 sm:gap-3 lg:gap-5">
+              {photos.map((photo, i) =>
+                i === CENTER_INDEX ? (
+                  <div
+                    key={i}
+                    ref={centerCardRef}
+                    className={`relative h-16 w-10 shrink-0 overflow-hidden sm:h-32 sm:w-20 lg:h-56 lg:w-40 ${photo.offset}`}
+                  >
+                    <Image
+                      src={heroImage}
+                      alt=""
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    className={`h-16 w-10 shrink-0 sm:h-32 sm:w-20 lg:h-56 lg:w-40 ${photo.offset}`}
+                    style={{ backgroundColor: photo.color ?? undefined }}
+                  />
+                )
+              )}
+            </div>
           </div>
         </div>
+      </section>
+
+      {/* Fixed overlay: the growing photo, driven entirely by scroll */}
+      <div
+        ref={overlayRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed z-20 overflow-hidden opacity-0"
+      >
+        <Image src={heroImage} alt="" fill sizes="100vw" className="object-cover" />
       </div>
-    </div>
 
-    {/* Fixed overlay: the growing/shrinking photo, driven entirely by scroll */}
-    <div
-      ref={overlayRef}
-      aria-hidden="true"
-      className="pointer-events-none fixed z-20 overflow-hidden opacity-0"
-    >
-      <Image src={heroImage} alt="" fill sizes="100vw" className="object-cover" />
-    </div>
-
-    {/* Text lines cross-fade over the fullscreen photo — a true sibling of
-        the overlay so its z-index actually competes with it, rather than
-        being trapped inside the sticky container's own stacking context. */}
-    <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center px-6 text-center">
-      {lines.map((line, i) => (
-        <p
-          key={line}
-          ref={(el) => {
-            lineRefs.current[i] = el;
-          }}
-          className="absolute max-w-3xl font-serif text-2xl text-white opacity-0 sm:text-4xl"
-        >
-          {line}
+      {/* Hospitality quote — a true sibling of the overlay so its z-index
+          actually competes with it, rather than being trapped inside the
+          sticky container's own stacking context. Appears once the zoom
+          finishes; no animation of its own. */}
+      <div
+        ref={quoteRef}
+        className="pointer-events-none fixed inset-0 z-30 flex flex-col items-center justify-center px-6 text-center opacity-0"
+      >
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 bg-indigo-500" />
+          <span className="text-xs font-medium tracking-widest text-white/60 uppercase">
+            {HOSPITALITY_EYEBROW}
+          </span>
+        </div>
+        <p className="mt-6 max-w-4xl font-serif text-3xl leading-snug text-white/70 sm:text-5xl">
+          {HOSPITALITY_QUOTE}
         </p>
-      ))}
-    </div>
+      </div>
     </>
   );
 }

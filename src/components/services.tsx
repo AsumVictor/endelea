@@ -175,7 +175,7 @@ function ServiceCard({
         </div>
 
         <a
-          href="#projects"
+          href="#work"
           className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-zinc-950"
         >
           <span className="flex h-6 w-6 items-center justify-center bg-[#D4EC3A]">
@@ -192,22 +192,29 @@ function ServiceCard({
         <p className="mt-1 text-sm text-zinc-700">{category}</p>
       </div>
 
+      {/* Decorative — the same construction photo repeats across every card
+          and adds no information the adjacent title/description doesn't
+          already convey, so it's marked decorative rather than given a
+          misleading per-service caption. */}
       <NotchedImage
         src={heroImage}
-        alt={`${title} at Endelea`}
+        alt=""
         objectPosition={objectPosition}
-        className="aspect-4/3 w-full lg:aspect-auto"
+        className="hidden aspect-4/3 w-full lg:block lg:aspect-auto"
       />
     </div>
   );
 }
 
-const NAVBAR_HEIGHT = 112; // px, clears the fixed navbar
 const STICKY_STEP = 24; // px of the previous card left peeking above each new one
 
 export function Services() {
   const headingRef = useRef<HTMLDivElement>(null);
   const [headingHeight, setHeadingHeight] = useState(0);
+  // Measured live from the actual fixed <header> rather than assumed, so the
+  // stacking trigger always lines up with the navbar's real height — the
+  // navbar's own height changes between the desktop nav and the mobile bar.
+  const [navbarHeight, setNavbarHeight] = useState(112);
 
   useEffect(() => {
     const el = headingRef.current;
@@ -219,12 +226,25 @@ export function Services() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const header = document.querySelector("header");
+    if (!header) return;
+    const update = () => setNavbarHeight(header.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="bg-white px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
+    <section
+      id="services"
+      className="scroll-mt-32 bg-white px-6 py-16 sm:px-10 sm:py-20 lg:px-16"
+    >
       <div
         ref={headingRef}
         className="sticky flex flex-col items-start justify-between gap-6 bg-white py-4 sm:flex-row sm:items-center"
-        style={{ top: `${NAVBAR_HEIGHT}px`, zIndex: services.length + 1 }}
+        style={{ top: `${navbarHeight}px`, zIndex: services.length + 1 }}
       >
         <h2 className="text-5xl font-semibold tracking-tight text-[#14150f] sm:text-7xl">
           Our Services
@@ -243,7 +263,7 @@ export function Services() {
             key={service.title}
             className="sticky"
             style={{
-              top: `${NAVBAR_HEIGHT + headingHeight + i * STICKY_STEP}px`,
+              top: `${navbarHeight + headingHeight + i * STICKY_STEP}px`,
               zIndex: i + 1,
             }}
           >
