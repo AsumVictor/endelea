@@ -1,8 +1,10 @@
+import heroImage from "@/assets/hero-png.png";
 import { Hero } from "@/components/hero";
 import { Results } from "@/components/results";
 import { About } from "@/components/about";
 import { Services } from "@/components/services";
 import { CaseStudyIntro } from "@/components/case-study-intro";
+import { CaseStudyHero } from "@/components/case-study-hero";
 import { CaseStudyOverview } from "@/components/case-study-overview";
 import { Testimonials } from "@/components/testimonials";
 import { Contact } from "@/components/contact";
@@ -16,6 +18,14 @@ export default function Home() {
       <About />
       <Services />
       <CaseStudyIntro />
+
+      <CaseStudyHero
+        eyebrow="Where it fits"
+        quote="Hospitality isn’t about adding more rooms. It’s about aligning what already welcomes. Through real-time availability and seamless booking, AquaView turned manual reservations into effortless stays."
+        image={heroImage}
+        imageAlt="AquaView Beach Resort"
+        objectPosition="50% 30%"
+      />
 
       <CaseStudyOverview
         eyebrow="Numbers"

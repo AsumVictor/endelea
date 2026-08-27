@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { useScrollMarquee } from "@/hooks/use-scroll-marquee";
+import { useMarquee } from "@/hooks/use-marquee";
 
 interface Testimonial {
   quote: string;
@@ -52,13 +52,15 @@ const row2: Testimonial[] = [
 function TestimonialCard({ quote, name, title, cardBg }: Testimonial) {
   return (
     <div
-      className="flex h-56 w-48 shrink-0 flex-col justify-between rounded-2xl p-4 sm:h-80 sm:w-72 sm:p-6 lg:h-105 lg:w-96 lg:p-8"
+      tabIndex={0}
+      aria-label={`Testimonial from ${name}, ${title}: ${quote}`}
+      className="flex h-56 w-48 shrink-0 flex-col justify-between rounded-2xl p-4 outline-none sm:h-80 sm:w-72 sm:p-6 lg:h-105 lg:w-96 lg:p-8"
       style={{ backgroundColor: cardBg }}
     >
-      <p className="text-xs leading-relaxed text-zinc-900 sm:text-base lg:text-lg">
+      <p className="pointer-events-none text-xs leading-relaxed text-zinc-900 select-none sm:text-base lg:text-lg">
         &ldquo;{quote}&rdquo;
       </p>
-      <div>
+      <div className="pointer-events-none select-none">
         <p className="text-sm font-semibold text-zinc-950 sm:text-base">
           {name}
         </p>
@@ -76,13 +78,15 @@ function TestimonialRow({
   reverse?: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
-  useScrollMarquee(trackRef, { reverse });
+  useMarquee(trackRef, { reverse });
 
+  // Duplicated once so the loop is seamless and a drag can wrap around
+  // endlessly in either direction.
   const items = [...testimonials, ...testimonials];
 
   return (
     <div
-      className="overflow-hidden"
+      className="touch-pan-y overflow-hidden"
       style={{
         maskImage:
           "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
@@ -97,7 +101,7 @@ function TestimonialRow({
         {items.map((t, i) => (
           <div key={i} className="flex shrink-0 gap-3 sm:gap-4 lg:gap-6">
             <div
-              className="h-56 w-48 shrink-0 rounded-2xl sm:h-80 sm:w-72 lg:h-105 lg:w-96"
+              className="pointer-events-none h-56 w-48 shrink-0 rounded-2xl select-none sm:h-80 sm:w-72 lg:h-105 lg:w-96"
               style={{ backgroundColor: t.photoBg }}
             />
             <TestimonialCard {...t} />
